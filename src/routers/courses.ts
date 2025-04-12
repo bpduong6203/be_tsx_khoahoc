@@ -56,7 +56,6 @@ router.get('/category/:categoryId', async (req: express.Request, res: express.Re
 });
 
 // POST: Đăng ký khóa học
-// POST: Đăng ký khóa học
 router.post(
   '/:courseId/enroll',
   [
@@ -81,7 +80,7 @@ router.post(
       const enrollment = await enrollCourse(courseId, userId, payment_method || null);
 
       return res.status(201).json({
-        data: await formatEnrollmentForResponse(enrollment), // Đảm bảo await vì hàm async
+        data: await formatEnrollmentForResponse(enrollment), 
         message:
           enrollment.payment_status === 'Completed'
             ? 'Đăng ký khóa học thành công'
