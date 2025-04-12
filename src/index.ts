@@ -28,11 +28,11 @@ app.use('/api', authRoutes);
 
 app.use('/api/enrollments', enrollmentRoutes);
 
-app.use('/api/courses', courseRoutes);
+app.use('/api', courseRoutes);
 
 app.use('/api', categoryRoutes);
 
-app.use('/api/lessons', lessonRoutes);
+app.use('/api', lessonRoutes);
 
 
 app.listen(PORT, () => {

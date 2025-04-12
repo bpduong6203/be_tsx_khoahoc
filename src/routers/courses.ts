@@ -21,16 +21,41 @@ const isAuthenticated = async (req: express.Request, res: express.Response, next
   }
 };
 
-router.get('/', async (req: express.Request, res: express.Response) => {
+// GET: Lấy danh sách khóa học
+router.get('/courses', async (req: express.Request, res: express.Response) => {
   try {
     const courses = await getCourses();
-    return res.json(courses);
+    return res.json({
+      data: courses.map(course => ({
+        id: course.id,
+        title: course.title,
+        description: course.description,
+        category_id: course.category_id,
+        user_id: course.user_id,
+        price: Number(course.price).toFixed(2),
+        discount_price: course.discount_price ? Number(course.discount_price).toFixed(2) : null,
+        thumbnail_url: course.thumbnail_url,
+        duration: course.duration,
+        level: course.level,
+        requirements: course.requirements,
+        objectives: course.objectives,
+        status: course.status,
+        rating: Number(course.rating).toFixed(2),
+        enrollment_count: course.enrollment_count,
+        created_at: course.created_at.toISOString().replace('Z', '.000000Z'),
+        category: null, 
+        user: null,    
+        lessons: null  
+      })),
+      message: 'Courses retrieved successfully'
+    });
   } catch (error) {
+    console.error('Error fetching courses:', error);
     return res.status(500).json({ error: 'Server error' });
   }
 });
 
-router.get('/:id', async (req: express.Request, res: express.Response) => {
+router.get('/courses/:id', async (req: express.Request, res: express.Response) => {
   try {
     const course = await getCourseById(req.params.id);
     if (!course) {
@@ -57,7 +82,7 @@ router.get('/category/:categoryId', async (req: express.Request, res: express.Re
 
 // POST: Đăng ký khóa học
 router.post(
-  '/:courseId/enroll',
+  '/courses/:courseId/enroll',
   [
     param('courseId').isUUID().withMessage('Invalid course ID'),
     body('payment_method')
@@ -95,3 +120,4 @@ router.post(
 );
 
 export default router;
+

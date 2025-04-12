@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import {
   getLessonsByCourseId,
+  getAllLessons, // Thêm hàm mới
   getLessonById,
   createLesson,
   updateLesson,
@@ -52,17 +53,32 @@ async function checkAdminRole(user_id: string): Promise<boolean> {
   return (rows as any[]).length > 0;
 }
 
-// GET: Lấy tất cả bài học theo course_id
-router.get('/', async (req: Request, res: Response) => {
+// GET: Lấy tất cả bài học hoặc theo course_id
+router.get('/lessons', async (req: Request, res: Response) => {
   try {
     const { course_id } = req.query;
-    if (!course_id || typeof course_id !== 'string') {
-      return res.status(400).json({ error: 'course_id is required' });
+    let lessons;
+
+    if (course_id && typeof course_id === 'string') {
+      lessons = await getLessonsByCourseId(course_id);
+    } else {
+      lessons = await getAllLessons(); // Lấy tất cả bài học
     }
-    const lessons = await getLessonsByCourseId(course_id);
+
     return res.json({
-      data: lessons,
-      message: 'Lessons retrieved successfully',
+      lessons: lessons.map(lesson => ({
+        id: lesson.id,
+        course_id: lesson.course_id,
+        title: lesson.title,
+        description: lesson.description,
+        content: lesson.content,
+        video_url: lesson.video_url,
+        duration: lesson.duration,
+        order_number: lesson.order_number,
+        status: lesson.status,
+        created_at: lesson.created_at.toISOString().replace('Z', '.000000Z'),
+        updated_at: lesson.updated_at.toISOString().replace('Z', '.000000Z'),
+      })),
     });
   } catch (error) {
     console.error('Error fetching lessons:', error);
@@ -71,15 +87,26 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 // GET: Lấy chi tiết bài học theo id
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/lessons/:id', async (req: Request, res: Response) => {
   try {
     const lesson = await getLessonById(req.params.id);
     if (!lesson) {
       return res.status(404).json({ error: 'Lesson not found' });
     }
     return res.json({
-      data: lesson,
-      message: 'Lesson retrieved successfully',
+      lesson: {
+        id: lesson.id,
+        course_id: lesson.course_id,
+        title: lesson.title,
+        description: lesson.description,
+        content: lesson.content,
+        video_url: lesson.video_url,
+        duration: lesson.duration,
+        order_number: lesson.order_number,
+        status: lesson.status,
+        created_at: lesson.created_at.toISOString().replace('Z', '.000000Z'),
+        updated_at: lesson.updated_at.toISOString().replace('Z', '.000000Z'),
+      },
     });
   } catch (error) {
     console.error('Error fetching lesson:', error);
@@ -88,9 +115,9 @@ router.get('/:id', async (req: Request, res: Response) => {
 });
 
 // POST: Tạo bài học mới
-router.post('/', isAdminOrOwner, async (req: Request, res: Response) => {
+router.post('/lessons', isAdminOrOwner, async (req: Request, res: Response) => {
   try {
-    const { course_id, title, description, video_url, duration, order_number } = req.body;
+    const { course_id, title, description, content, video_url, duration, order_number } = req.body;
     if (!course_id || !title || order_number === undefined) {
       return res.status(400).json({ error: 'course_id, title, and order_number are required' });
     }
@@ -98,13 +125,25 @@ router.post('/', isAdminOrOwner, async (req: Request, res: Response) => {
       course_id,
       title,
       description,
+      content,
       video_url,
       duration,
       order_number,
     });
     return res.status(201).json({
-      data: lesson,
-      message: 'Lesson created successfully',
+      lesson: {
+        id: lesson.id,
+        course_id: lesson.course_id,
+        title: lesson.title,
+        description: lesson.description,
+        content: lesson.content,
+        video_url: lesson.video_url,
+        duration: lesson.duration,
+        order_number: lesson.order_number,
+        status: lesson.status,
+        created_at: lesson.created_at.toISOString().replace('Z', '.000000Z'),
+        updated_at: lesson.updated_at.toISOString().replace('Z', '.000000Z'),
+      },
     });
   } catch (error) {
     console.error('Error creating lesson:', error);
@@ -113,12 +152,13 @@ router.post('/', isAdminOrOwner, async (req: Request, res: Response) => {
 });
 
 // PUT: Cập nhật bài học
-router.put('/:id', isAdminOrOwner, async (req: Request, res: Response) => {
+router.put('/lessons/:id', isAdminOrOwner, async (req: Request, res: Response) => {
   try {
-    const { title, description, video_url, duration, order_number, status } = req.body;
+    const { title, description, content, video_url, duration, order_number, status } = req.body;
     const lesson = await updateLesson(req.params.id, {
       title,
       description,
+      content,
       video_url,
       duration,
       order_number,
@@ -128,8 +168,19 @@ router.put('/:id', isAdminOrOwner, async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Lesson not found or no changes provided' });
     }
     return res.json({
-      data: lesson,
-      message: 'Lesson updated successfully',
+      lesson: {
+        id: lesson.id,
+        course_id: lesson.course_id,
+        title: lesson.title,
+        description: lesson.description,
+        content: lesson.content,
+        video_url: lesson.video_url,
+        duration: lesson.duration,
+        order_number: lesson.order_number,
+        status: lesson.status,
+        created_at: lesson.created_at.toISOString().replace('Z', '.000000Z'),
+        updated_at: lesson.updated_at.toISOString().replace('Z', '.000000Z'),
+      },
     });
   } catch (error) {
     console.error('Error updating lesson:', error);
@@ -138,7 +189,7 @@ router.put('/:id', isAdminOrOwner, async (req: Request, res: Response) => {
 });
 
 // DELETE: Xóa bài học
-router.delete('/:id', isAdminOrOwner, async (req: Request, res: Response) => {
+router.delete('/lessons/:id', isAdminOrOwner, async (req: Request, res: Response) => {
   try {
     const lesson = await getLessonById(req.params.id);
     if (!lesson) {
