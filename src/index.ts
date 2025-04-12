@@ -1,15 +1,40 @@
-import pool from './database/db';
+import cors from 'cors';
+import express from 'express';
+import * as dotenv from 'dotenv';
+import authRoutes from './routers/auth';
+import enrollmentRoutes from './routers/enrollments';
+import courseRoutes from './routers/courses';
+import categoryRoutes from './routers/categories';
+import lessonRoutes from './routers/lessons';
 
-async function main() {
-  try {
-    // Ví dụ: Lấy tất cả users từ bảng users
-    const [rows] = await pool.query('SELECT * FROM users');
-    console.log('Users:', rows);
-  } catch (error) {
-    console.error('Error querying database:', error);
-  } finally {
-    await pool.end();
-  }
-}
 
-main();
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 8000;
+
+app.use(
+  cors({
+    origin: 'http://localhost:3000', 
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], 
+    allowedHeaders: ['Content-Type', 'Authorization'], 
+  })
+);
+
+app.use(express.json());
+
+// Routes
+app.use('/api', authRoutes);
+
+app.use('/api/enrollments', enrollmentRoutes);
+
+app.use('/api/courses', courseRoutes);
+
+app.use('/api', categoryRoutes);
+
+app.use('/api/lessons', lessonRoutes);
+
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
