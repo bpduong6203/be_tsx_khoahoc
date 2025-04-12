@@ -1,2 +1,1 @@
-npx tsx
-node src/index.js
+npx tsx src/index.ts
