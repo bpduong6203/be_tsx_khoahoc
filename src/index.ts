@@ -1,22 +1,15 @@
-import http from "http";
-import { handleCategoriesApi } from "./api/categories";
-import { handleUsersApi } from "./api/users";
-import { handleRolesApi } from "./api/roles";
+import pool from './database/db';
 
-const server = http.createServer((req, res) => {
-  if (req.url?.startsWith("/api/categories")) {
-    handleCategoriesApi(req, res);
-  } else if (req.url?.startsWith('/api/users')) {
-    handleUsersApi(req, res);
-  } else if (req.url?.startsWith('/api/roles')) {
-    handleRolesApi(req, res);
-  } else{
-    res.writeHead(404, { "Content-Type": "text/plain" });
-    res.end("Not Found");
+async function main() {
+  try {
+    // Ví dụ: Lấy tất cả users từ bảng users
+    const [rows] = await pool.query('SELECT * FROM users');
+    console.log('Users:', rows);
+  } catch (error) {
+    console.error('Error querying database:', error);
+  } finally {
+    await pool.end();
   }
-});
+}
 
-const PORT = 3000;
-server.listen(PORT, () => {
-  console.log(`Server is running at http://localhost:${PORT}`);
-});
+main();

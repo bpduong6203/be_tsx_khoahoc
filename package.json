@@ -1,12 +1,19 @@
 {
+  "name": "be_tsx_khoahoc",
+  "version": "1.0.0",
+  "description": "TypeScript backend with MySQL",
+  "scripts": {
+    "start": "ts-node src/index.ts"
+  },
   "devDependencies": {
     "@types/node": "^22.14.1",
-    "prisma": "^6.6.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "@prisma/client": "^6.6.0",
-    "jsonwebtoken": "^9.0.2"
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.5.0",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.14.0"
   }
 }
