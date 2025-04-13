@@ -34,7 +34,7 @@ export async function getAllUsers(): Promise<User[]> {
 
 export async function getUserById(id: string): Promise<User | null> {
   const [userRows] = await pool.query(
-    `SELECT id, name, email, created_at, updated_at 
+    `SELECT id, name, avatar,email, created_at, updated_at 
      FROM users WHERE id = ?`,
     [id]
   );
@@ -62,7 +62,7 @@ export async function getUserById(id: string): Promise<User | null> {
 
 export async function getUserByEmail(email: string): Promise<User | null> {
   const [userRows] = await pool.query(
-    `SELECT id, name, email, password, created_at, updated_at 
+    `SELECT id, name, avatar, email, password, created_at, updated_at 
      FROM users WHERE email = ?`,
     [email]
   );
@@ -102,7 +102,6 @@ export async function createUser(user: {
     [id, name, email, password, new Date(), new Date()]
   );
 
-  // Gán role mặc định là "user"
   const [roleRows] = await pool.query(`SELECT id FROM roles WHERE name = ?`, ['user']);
   const role = (roleRows as any[])[0];
   if (role) {
@@ -125,6 +124,7 @@ export async function updateUser(
     name?: string;
     email?: string;
     password?: string;
+    avatar?: string;
     updated_at: Date;
   }
 ): Promise<User | null> {

@@ -42,6 +42,7 @@ router.get('/user', isAuthenticated, async (req: Request, res: Response) => {
     id: user.id || '',
     name: user.name || '',
     email: user.email || '',
+    avatar: user.avatar || '',
     roles,
   };
   res.json(userResponse);
@@ -55,9 +56,14 @@ router.put(
   '/user',
   isAuthenticated,
   [
-    body('name').optional().trim().notEmpty().withMessage('Name is required'),
-    body('email').optional().isEmail().withMessage('Invalid email'),
-    body('password').optional().isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+    body('name').optional().trim().notEmpty().withMessage('Tên không được để trống'),
+    body('email').optional().isEmail().withMessage('Email không hợp lệ'),
+    body('password').optional().isLength({ min: 6 }).withMessage('Mật khẩu phải có ít nhất 6 ký tự'),
+    body('avatar')
+      .optional()
+      .isString()
+      .matches(/^\/cdn\/images\//)
+      .withMessage('URL ảnh không hợp lệ, phải bắt đầu bằng /cdn/images/'),
   ],
   async (req: Request, res: Response) => {
     try {
@@ -67,21 +73,21 @@ router.put(
       }
 
       const userId = (req as any).user.id;
-      const { name, email, password } = req.body;
+      const { name, email, password, avatar } = req.body;
 
-      const updatedUser = await updateUserDetails(userId, { name, email, password });
+      const updatedUser = await updateUserDetails(userId, { name, email, password, avatar });
       if (!updatedUser) {
-        return res.status(400).json({ error: 'No changes to update' });
+        return res.status(400).json({ error: 'Không có thay đổi để cập nhật' });
       }
 
       return res.json({
         user: formatUserForResponse(updatedUser),
-        message: 'User updated successfully',
+        message: 'Cập nhật người dùng thành công',
       });
     } catch (error: any) {
-      console.error('Error updating user:', error);
+      console.error('Lỗi khi cập nhật người dùng:', error);
       return res.status(error.message.includes('not found') ? 404 : 400).json({
-        error: error.message || 'Server error',
+        error: error.message || 'Lỗi server',
       });
     }
   }
