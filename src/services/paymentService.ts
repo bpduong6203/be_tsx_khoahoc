@@ -1,4 +1,4 @@
-import { getAllPayments, createPayment } from '../models/payment';
+import { getAllPayments, createPayment, updatePaymentStatus } from '../models/payment';
 import { Payment } from '../types';
 
 export async function getAllPaymentsService(): Promise<Payment[]> {
@@ -12,4 +12,12 @@ export async function createPaymentService(
   billingInfo: string | null
 ): Promise<Payment> {
   return await createPayment(enrollmentId, userId, paymentMethod, billingInfo);
+}
+
+export async function updatePaymentStatusService(
+  paymentId: string,
+  status: 'Pending' | 'Completed' | 'Failed' | 'Refunded',
+  transactionId: string | null
+): Promise<Payment> {
+  return await updatePaymentStatus(paymentId, status, transactionId);
 }

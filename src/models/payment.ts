@@ -3,7 +3,6 @@ import { Payment, Enrollment } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
 export async function getAllPayments(): Promise<Payment[]> {
-  // Giữ nguyên code từ trước
   const [paymentRows] = await pool.query(
     `SELECT 
       p.id,
@@ -87,7 +86,6 @@ export async function createPayment(
   paymentMethod: 'Bank',
   billingInfo: string | null
 ): Promise<Payment> {
-  // Kiểm tra enrollment
   const [enrollmentRows] = await pool.query(
     `SELECT id, user_id, course_id, price, status FROM enrollments WHERE id = ?`,
     [enrollmentId]
@@ -167,4 +165,104 @@ export async function createPayment(
     created_at: new Date(row.payment_created_at),
     updated_at: new Date(row.payment_updated_at),
   } as Payment;
+}
+
+export async function updatePaymentStatus(
+  paymentId: string,
+  status: 'Pending' | 'Completed' | 'Failed' | 'Refunded',
+  transactionId: string | null
+): Promise<Payment> {
+  try {
+    // Kiểm tra payment tồn tại
+    const [paymentRows] = await pool.query(
+      `SELECT id, enrollment_id FROM payments WHERE id = ?`,
+      [paymentId]
+    );
+    const payment = (paymentRows as any[])[0];
+    if (!payment) {
+      throw new Error('Payment not found');
+    }
+
+    // Cập nhật payment
+    await pool.query(
+      `UPDATE payments SET 
+        status = ?, 
+        transaction_id = ?, 
+        updated_at = NOW() 
+      WHERE id = ?`,
+      [status, transactionId, paymentId]
+    );
+
+    // Cập nhật enrollment nếu có
+    if (payment.enrollment_id) {
+      const [enrollmentRows] = await pool.query(
+        `SELECT id, status, payment_status, payment_method, transaction_id 
+        FROM enrollments 
+        WHERE id = ?`,
+        [payment.enrollment_id]
+      );
+      const enrollment = (enrollmentRows as any[])[0];
+      if (enrollment) {
+        const newEnrollmentStatus = status === 'Completed' ? 'Active' : enrollment.status;
+        await pool.query(
+          `UPDATE enrollments SET 
+            payment_status = ?, 
+            status = ?, 
+            payment_method = ?, 
+            transaction_id = ?, 
+            updated_at = NOW() 
+          WHERE id = ?`,
+          [status, newEnrollmentStatus, enrollment.payment_method, transactionId, payment.enrollment_id]
+        );
+      }
+    }
+
+    // Lấy payment đã cập nhật
+    const [updatedPaymentRows] = await pool.query(
+      `SELECT 
+        p.id,
+        p.invoice_code,
+        p.enrollment_id,
+        p.user_id,
+        p.amount,
+        p.payment_method,
+        p.transaction_id,
+        p.status,
+        p.billing_info,
+        p.created_at AS payment_created_at,
+        p.updated_at AS payment_updated_at,
+        u.id AS user_id,
+        u.name AS user_name,
+        u.email AS user_email,
+        u.email_verified_at,
+        u.avatar,
+        u.created_at AS user_created_at,
+        u.updated_at AS user_updated_at
+      FROM payments p
+      JOIN users u ON p.user_id = u.id
+      WHERE p.id = ?`,
+      [paymentId]
+    );
+
+    const row = (updatedPaymentRows as any[])[0];
+    if (!row) {
+      throw new Error('Failed to retrieve updated payment');
+    }
+
+    return {
+      id: row.id,
+      invoice_code: row.invoice_code || '',
+      enrollment_id: row.enrollment_id,
+      user_id: row.user_id,
+      amount: parseFloat(row.amount),
+      payment_method: row.payment_method,
+      transaction_id: row.transaction_id,
+      status: row.status,
+      billing_info: row.billing_info,
+      created_at: new Date(row.payment_created_at),
+      updated_at: new Date(row.payment_updated_at),
+    } as Payment;
+  } catch (error: any) {
+    throw new Error(`Failed to update payment status: ${error.message}`);
+  }
 }

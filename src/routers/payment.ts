@@ -1,5 +1,5 @@
 import express, { Response } from 'express';
-import { getAllPaymentsService, createPaymentService } from '../services/paymentService';
+import { getAllPaymentsService, createPaymentService, updatePaymentStatusService } from '../services/paymentService';
 import { AuthenticatedRequest, isAuthenticated, isAdminOrOwner } from '../middleware/auth';
 import { QRCodeService } from '../services/qrCodeService';
 
@@ -31,7 +31,6 @@ router.post('/payments/create', isAuthenticated, async (req: CreatePaymentReques
   try {
     const { enrollment_id, payment_method, billing_info } = req.body;
 
-    // Validate request
     if (!enrollment_id || !payment_method) {
       return res.status(400).json({ error: 'enrollment_id and payment_method are required' });
     }
@@ -65,7 +64,7 @@ router.post('/payments/create', isAuthenticated, async (req: CreatePaymentReques
 
       return res.status(201).json({
         payment,
-        qr_code: qrImage.split(',')[1], // Loại bỏ "data:image/png;base64,"
+        qr_code: qrImage.split(',')[1], 
       });
     }
 
@@ -77,6 +76,42 @@ router.post('/payments/create', isAuthenticated, async (req: CreatePaymentReques
     console.error('Error creating payment:', error);
     return res.status(500).json({
       error: error.message || 'Failed to create payment',
+    });
+  }
+});
+
+interface UpdatePaymentRequest extends AuthenticatedRequest {
+  body: {
+    status: 'Pending' | 'Completed' | 'Failed' | 'Refunded';
+    transaction_id?: string;
+  };
+}
+
+router.put('/payments/:paymentId/status', isAuthenticated, isAdminOrOwner, async (req: UpdatePaymentRequest, res: Response) => {
+  try {
+    const { paymentId } = req.params;
+    const { status, transaction_id } = req.body;
+
+    if (!status || !['Pending', 'Completed', 'Failed', 'Refunded'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status. Must be Pending, Completed, Failed, or Refunded' });
+    }
+    if (transaction_id && typeof transaction_id !== 'string') {
+      return res.status(400).json({ error: 'transaction_id must be a string' });
+    }
+    if (transaction_id && transaction_id.length > 100) {
+      return res.status(400).json({ error: 'transaction_id must not exceed 100 characters' });
+    }
+
+    const payment = await updatePaymentStatusService(paymentId, status, transaction_id || null);
+
+    return res.status(200).json({
+      payment,
+      message: 'Payment status updated successfully',
+    });
+  } catch (error: any) {
+    console.error('Error updating payment status:', error);
+    return res.status(500).json({
+      error: error.message || 'Failed to update payment status',
     });
   }
 });
