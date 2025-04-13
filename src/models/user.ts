@@ -1,33 +1,91 @@
 import pool from '../database/db';
+import { User, Role } from '../types';
 import { v4 as uuidv4 } from 'uuid';
-import { User } from '../types';
 
-export async function getUsers(): Promise<User[]> {
-  const [rows] = await pool.query('SELECT * FROM users');
-  const users = rows as User[];
-  // Lấy vai trò cho từng user
+export async function getAllUsers(): Promise<User[]> {
+  const [userRows] = await pool.query(
+    `SELECT u.id, u.name, u.email, u.created_at, u.updated_at 
+     FROM users u`
+  );
+
+  const users = (userRows as any[]).map(row => ({
+    ...row,
+    created_at: new Date(row.created_at),
+    updated_at: new Date(row.updated_at),
+    roles: [],
+  })) as User[];
+
   for (const user of users) {
-    user.roles = await getUserRoles(user.id);
+    const [roleRows] = await pool.query(
+      `SELECT r.id, r.name 
+       FROM roles r 
+       JOIN role_user ur ON r.id = ur.role_id 
+       WHERE ur.user_id = ?`,
+      [user.id]
+    );
+    user.roles = (roleRows as any[]).map(row => ({
+      id: row.id,
+      name: row.name,
+    })) as Role[];
   }
+
   return users;
 }
 
 export async function getUserById(id: string): Promise<User | null> {
-  const [rows] = await pool.query('SELECT * FROM users WHERE id = ?', [id]);
-  const user = (rows as User[])[0] || null;
-  if (user) {
-    user.roles = await getUserRoles(id);
-  }
-  return user;
+  const [userRows] = await pool.query(
+    `SELECT id, name, email, created_at, updated_at 
+     FROM users WHERE id = ?`,
+    [id]
+  );
+  const user = (userRows as any[])[0];
+  if (!user) return null;
+
+  const [roleRows] = await pool.query(
+    `SELECT r.id, r.name 
+     FROM roles r 
+     JOIN role_user ur ON r.id = ur.role_id 
+     WHERE ur.user_id = ?`,
+    [id]
+  );
+
+  return {
+    ...user,
+    created_at: new Date(user.created_at),
+    updated_at: new Date(user.updated_at),
+    roles: (roleRows as any[]).map(row => ({
+      id: row.id,
+      name: row.name,
+    })) as Role[],
+  } as User;
 }
 
 export async function getUserByEmail(email: string): Promise<User | null> {
-  const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
-  const user = (rows as User[])[0] || null;
-  if (user) {
-    user.roles = await getUserRoles(user.id);
-  }
-  return user;
+  const [userRows] = await pool.query(
+    `SELECT id, name, email, password, created_at, updated_at 
+     FROM users WHERE email = ?`,
+    [email]
+  );
+  const user = (userRows as any[])[0];
+  if (!user) return null;
+
+  const [roleRows] = await pool.query(
+    `SELECT r.id, r.name 
+     FROM roles r 
+     JOIN role_user ur ON r.id = ur.role_id 
+     WHERE ur.user_id = ?`,
+    [user.id]
+  );
+
+  return {
+    ...user,
+    created_at: new Date(user.created_at),
+    updated_at: new Date(user.updated_at),
+    roles: (roleRows as any[]).map(row => ({
+      id: row.id,
+      name: row.name,
+    })) as Role[],
+  } as User;
 }
 
 export async function createUser(user: {
@@ -35,44 +93,45 @@ export async function createUser(user: {
   email: string;
   password: string;
 }): Promise<User> {
-  const { name, email, password } = user;
   const id = uuidv4();
+  const { name, email, password } = user;
 
-  // Chèn user mới
   await pool.query(
-    'INSERT INTO users (id, name, email, password, created_at, updated_at) VALUES (?, ?, ?, ?, NOW(), NOW())',
-    [id, name, email, password]
+    `INSERT INTO users (id, name, email, password, created_at, updated_at) 
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [id, name, email, password, new Date(), new Date()]
   );
 
-  // Gán vai trò "user" mặc định
-  const role = await getRoleByName('user');
-  if (!role) {
-    throw new Error('Default role "user" not found');
+  // Gán role mặc định là "user"
+  const [roleRows] = await pool.query(`SELECT id FROM roles WHERE name = ?`, ['user']);
+  const role = (roleRows as any[])[0];
+  if (role) {
+    await pool.query(
+      `INSERT INTO role_user (user_id, role_id) VALUES (?, ?)`,
+      [id, role.id]
+    );
   }
-  await pool.query(
-    'INSERT INTO role_user (user_id, role_id, created_at, updated_at) VALUES (?, ?, NOW(), NOW())',
-    [id, role.id]
-  );
 
-  // Lấy user mới
-  const newUser = await getUserByEmail(email);
-  if (!newUser) {
-    throw new Error('Failed to create user');
+  const createdUser = await getUserByEmail(email);
+  if (!createdUser) {
+    throw new Error('Không thể tạo người dùng');
   }
-  return newUser;
+  return createdUser;
 }
 
-// Hàm phụ: Lấy danh sách vai trò của user
-async function getUserRoles(userId: string): Promise<string[]> {
-  const [rows] = await pool.query(
-    'SELECT r.name FROM roles r JOIN role_user ru ON r.id = ru.role_id WHERE ru.user_id = ?',
-    [userId]
-  );
-  return (rows as { name: string }[]).map(row => row.name);
-}
+export async function updateUser(
+  id: string,
+  updates: {
+    name?: string;
+    email?: string;
+    password?: string;
+    updated_at: Date;
+  }
+): Promise<User | null> {
+  const fields = Object.keys(updates).map(key => `${key} = ?`).join(', ');
+  const values = Object.values(updates);
 
-// Hàm phụ: Lấy role theo tên
-async function getRoleByName(name: string): Promise<{ id: string; name: string } | null> {
-  const [rows] = await pool.query('SELECT id, name FROM roles WHERE name = ?', [name]);
-  return (rows as { id: string; name: string }[])[0] || null;
+  await pool.query(`UPDATE users SET ${fields} WHERE id = ?`, [...values, id]);
+
+  return await getUserById(id);
 }

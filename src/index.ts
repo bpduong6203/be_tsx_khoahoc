@@ -6,7 +6,8 @@ import enrollmentRoutes from './routers/enrollments';
 import courseRoutes from './routers/courses';
 import categoryRoutes from './routers/categories';
 import lessonRoutes from './routers/lessons';
-
+import userRoutes from './routers/user';
+import paymentRoutes from './routers/payment';
 
 dotenv.config();
 
@@ -33,6 +34,10 @@ app.use('/api', courseRoutes);
 app.use('/api', categoryRoutes);
 
 app.use('/api', lessonRoutes);
+
+app.use('/api', userRoutes);
+
+app.use('/api', paymentRoutes);
 
 
 app.listen(PORT, () => {

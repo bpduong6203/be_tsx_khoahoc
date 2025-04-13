@@ -6,9 +6,13 @@ export interface User {
     avatar: string | null;
     created_at: Date;
     updated_at: Date;
-    roles: string[];
+    roles: Role[];
 }
 
+export interface Role {
+    id: string;
+    name: 'admin' | 'user';
+}
 
 export interface Category {
     id: string;
@@ -66,4 +70,27 @@ export interface Enrollment {
     completion_date: Date | null;
     created_at: Date;
     updated_at: Date;
-  }
+}
+export interface Payment {
+    id: string;
+    invoice_code: string;
+    enrollment_id: string | null;
+    user_id: string;
+    amount: number;
+    payment_method: 'Momo' | 'Bank' | 'Paypal' | 'Cash';
+    transaction_id: string | null;
+    status: 'Pending' | 'Completed' | 'Failed' | 'Refunded';
+    billing_info: string | null;
+    created_at: Date;
+    updated_at: Date;
+    enrollment?: Enrollment | null;
+    user: {
+        id: string;
+        name: string;
+        email: string;
+        email_verified_at: Date | null;
+        avatar: string | null;
+        created_at: Date;
+        updated_at: Date;
+    };
+}
