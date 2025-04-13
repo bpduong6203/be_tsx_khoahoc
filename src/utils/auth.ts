@@ -41,4 +41,3 @@ export function verifyToken(token: string): JwtPayload {
   }
   return jwt.verify(token, JWT_SECRET) as JwtPayload;
 }
-

@@ -1,7 +1,15 @@
-import { getAllPayments } from '../models/payment';
+import { getAllPayments, createPayment } from '../models/payment';
 import { Payment } from '../types';
 
 export async function getAllPaymentsService(): Promise<Payment[]> {
-  const payments = await getAllPayments();
-  return payments; 
+  return await getAllPayments();
+}
+
+export async function createPaymentService(
+  enrollmentId: string,
+  userId: string,
+  paymentMethod: 'Bank',
+  billingInfo: string | null
+): Promise<Payment> {
+  return await createPayment(enrollmentId, userId, paymentMethod, billingInfo);
 }

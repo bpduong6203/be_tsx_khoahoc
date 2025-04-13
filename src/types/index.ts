@@ -83,14 +83,4 @@ export interface Payment {
     billing_info: string | null;
     created_at: Date;
     updated_at: Date;
-    enrollment?: Enrollment | null;
-    user: {
-        id: string;
-        name: string;
-        email: string;
-        email_verified_at: Date | null;
-        avatar: string | null;
-        created_at: Date;
-        updated_at: Date;
-    };
 }

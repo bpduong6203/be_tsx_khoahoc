@@ -2,6 +2,13 @@ import { Request, Response, NextFunction } from 'express';
 import pool from '../database/db';
 import { verifyToken } from '../utils/auth';
 
+interface TokenPayload {
+  id: string;
+  name?: string;
+  email?: string;
+  roles?: string[];
+}
+
 // Middleware: Kiểm tra đăng nhập
 export const isAuthenticated = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -36,3 +43,6 @@ export const isAdminOrOwner = async (req: Request, res: Response, next: NextFunc
   }
 };
 
+export interface AuthenticatedRequest extends Request {
+  user?: TokenPayload;
+}
