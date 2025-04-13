@@ -1,102 +1,90 @@
 import pool from '../database/db';
-import { Lesson } from './lesson';
-
-export interface Course {
-  id: string;
-  title: string;
-  description: string | null;
-  category_id: string | null;
-  user_id: string;
-  price: number; 
-  discount_price: number | null; 
-  thumbnail_url: string | null;
-  duration: number | null;
-  level: string | null;
-  requirements: string | null;
-  objectives: string | null;
-  status: string;
-  rating: number; 
-  enrollment_count: number;
-  created_at: Date; 
-  category: { id: string; name: string } | null;
-  user: { id: string; name: string } | null;
-  lessons: Lesson[];
-}
+import { Course, Lesson } from '../types';
 
 export async function getCourses(): Promise<Course[]> {
   const [rows] = await pool.query('SELECT * FROM courses');
-  const courses = rows as Course[];
-  for (const course of courses) {
-    await enrichCourse(course);
-  }
-  return courses;
+  return (rows as any[]).map(row => ({
+    ...row,
+    price: Number(row.price) || 0,
+    discount_price: row.discount_price ? Number(row.discount_price) : null,
+    rating: Number(row.rating) || 0,
+    enrollment_count: Number(row.enrollment_count) || 0,
+    created_at: row.created_at ? new Date(row.created_at) : new Date(),
+  })) as Course[];
 }
 
 export async function getCourseById(id: string): Promise<Course | null> {
   const [rows] = await pool.query('SELECT * FROM courses WHERE id = ?', [id]);
-  const course = (rows as Course[])[0] || null;
-  if (course) {
-    await enrichCourse(course);
-  }
-  return course;
+  const row = (rows as any[])[0];
+  if (!row) return null;
+  return {
+    ...row,
+    price: Number(row.price) || 0,
+    discount_price: row.discount_price ? Number(row.discount_price) : null,
+    rating: Number(row.rating) || 0,
+    enrollment_count: Number(row.enrollment_count) || 0,
+    created_at: row.created_at ? new Date(row.created_at) : new Date(),
+  } as Course;
 }
 
 export async function getCoursesByCategory(categoryId: string): Promise<Course[]> {
   const [rows] = await pool.query('SELECT * FROM courses WHERE category_id = ?', [categoryId]);
-  const courses = rows as Course[];
-  for (const course of courses) {
-    await enrichCourse(course);
-  }
-  return courses;
+  return (rows as any[]).map(row => ({
+    ...row,
+    price: Number(row.price) || 0,
+    discount_price: row.discount_price ? Number(row.discount_price) : null,
+    rating: Number(row.rating) || 0,
+    enrollment_count: Number(row.enrollment_count) || 0,
+    created_at: row.created_at ? new Date(row.created_at) : new Date(),
+  })) as Course[];
 }
 
-async function enrichCourse(course: Course): Promise<void> {
-  // Lấy category
-  if (course.category_id) {
-    const [categoryRows] = await pool.query('SELECT id, name FROM categories WHERE id = ?', [
-      course.category_id,
-    ]);
-    course.category = (categoryRows as { id: string; name: string }[])[0] || null;
-  } else {
-    course.category = null;
-  }
-
-  // Lấy user
-  if (course.user_id) {
-    const [userRows] = await pool.query('SELECT id, name FROM users WHERE id = ?', [course.user_id]);
-    course.user = (userRows as { id: string; name: string }[])[0] || null;
-  } else {
-    course.user = null;
-  }
-
-  // Lấy lessons
-  const [lessonRows] = await pool.query(
-    'SELECT id, title, description, content, video_url, duration, order_number, status FROM lessons WHERE course_id = ? AND status = ? ORDER BY order_number',
-    [course.id, 'Published']
+export async function getCoursesByCategoryId(categoryId: string, status: string = 'Published'): Promise<Course[]> {
+  const [rows] = await pool.query(
+    `SELECT 
+       c.id, 
+       c.title, 
+       c.description, 
+       c.category_id, 
+       u.name AS user_name, 
+       c.price, 
+       c.discount_price, 
+       c.thumbnail_url, 
+       c.duration, 
+       c.level, 
+       c.requirements, 
+       c.objectives, 
+       c.status, 
+       c.rating, 
+       c.enrollment_count 
+     FROM courses c 
+     JOIN users u ON c.user_id = u.id 
+     WHERE c.category_id = ? AND c.status = ?`,
+    [categoryId, status]
   );
-  course.lessons = lessonRows as Lesson[];
+  return (rows as any[]).map(row => ({
+    ...row,
+    price: Number(row.price) || 0,
+    discount_price: row.discount_price ? Number(row.discount_price) : null,
+    rating: Number(row.rating) || 0,
+    enrollment_count: Number(row.enrollment_count) || 0,
+  })) as Course[];
 }
 
-export function formatCourseForResponse(course: Course): any {
-  return {
-    id: course.id,
-    title: course.title,
-    description: course.description,
-    category_id: course.category_id,
-    user_id: course.user_id,
-    price: course.price.toFixed(2), 
-    discount_price: course.discount_price ? course.discount_price.toFixed(2) : null,
-    thumbnail_url: course.thumbnail_url,
-    duration: course.duration,
-    level: course.level,
-    requirements: course.requirements,
-    objectives: course.objectives,
-    status: course.status,
-    rating: course.rating.toFixed(2), 
-    enrollment_count: course.enrollment_count,
-    created_at: course.created_at.toISOString().replace('T', 'T').replace('Z', '.000000Z'),
-    category: course.category,
-    user: course.user,
-    lessons: course.lessons,
-  };
+export async function getCategoryById(categoryId: string): Promise<{ id: string; name: string } | null> {
+  const [rows] = await pool.query('SELECT id, name FROM categories WHERE id = ?', [categoryId]);
+  return (rows as { id: string; name: string }[])[0] || null;
+}
+
+export async function getUserById(userId: string): Promise<{ id: string; name: string } | null> {
+  const [rows] = await pool.query('SELECT id, name FROM users WHERE id = ?', [userId]);
+  return (rows as { id: string; name: string }[])[0] || null;
+}
+
+export async function getLessonsByCourseId(courseId: string): Promise<Lesson[]> {
+  const [rows] = await pool.query(
+    'SELECT id, title, description, content, video_url, duration, order_number, status FROM lessons WHERE course_id = ? AND status = ? ORDER BY order_number',
+    [courseId, 'Published']
+  );
+  return rows as Lesson[];
 }

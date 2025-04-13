@@ -1,7 +1,8 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
-import { getUserByEmail, User } from '../models/user';
+import { getUserByEmail } from '../models/user';
 import * as dotenv from 'dotenv';
+import { User } from '../types';
 
 dotenv.config();
 
@@ -40,3 +41,4 @@ export function verifyToken(token: string): JwtPayload {
   }
   return jwt.verify(token, JWT_SECRET) as JwtPayload;
 }
+

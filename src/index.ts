@@ -26,7 +26,7 @@ app.use(express.json());
 // Routes
 app.use('/api', authRoutes);
 
-app.use('/api/enrollments', enrollmentRoutes);
+app.use('/api', enrollmentRoutes);
 
 app.use('/api', courseRoutes);
 

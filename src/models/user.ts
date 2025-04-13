@@ -1,16 +1,6 @@
 import pool from '../database/db';
 import { v4 as uuidv4 } from 'uuid';
-
-export interface User {
-  id: string;
-  name: string;
-  email: string | null;
-  password: string | null;
-  avatar: string | null;
-  created_at: Date;
-  updated_at: Date;
-  roles: string[]; // Mảng tên vai trò, ví dụ ["admin", "user"]
-}
+import { User } from '../types';
 
 export async function getUsers(): Promise<User[]> {
   const [rows] = await pool.query('SELECT * FROM users');
