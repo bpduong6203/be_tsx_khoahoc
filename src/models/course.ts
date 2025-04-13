@@ -186,8 +186,13 @@ export async function getCoursesByUserId(userId: string): Promise<Course[]> {
         updated_at: row.updated_at ? new Date(row.updated_at) : new Date(),
     })) as Course[]; // Cần đảm bảo Course type khớp
 }
-
-// Các hàm helper getCategoryById, getUserById, getLessonsByCourseId nên được import từ model tương ứng nếu cần
-// export async function getCategoryById(categoryId: string): Promise<{ id: string; name: string } | null> { ... }
-// export async function getUserById(userId: string): Promise<{ id: string; name: string } | null> { ... }
-// export async function getLessonsByCourseId(courseId: string): Promise<Lesson[]> { ... }
+// === BỔ SUNG HÀM TĂNG ENROLLMENT COUNT ===
+export async function incrementEnrollmentCount(courseId: string): Promise<void> {
+    // Chỉ tăng nếu khóa học tồn tại
+    if (await checkCourseExists(courseId)) {
+        await pool.query('UPDATE courses SET enrollment_count = enrollment_count + 1 WHERE id = ?', [courseId]);
+    } else {
+        console.warn(`Attempted to increment enrollment count for non-existent course: ${courseId}`);
+        // Hoặc throw new Error('Course not found to increment enrollment count'); tùy logic bạn muốn
+    }
+}
