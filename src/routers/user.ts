@@ -35,10 +35,16 @@ router.get('/user', isAuthenticated, async (req: Request, res: Response) => {
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    return res.json({
-      user: formatUserForResponse(user),
-      message: 'User retrieved successfully',
-    });
+    const roles = Array.isArray(user.roles)
+    ? user.roles.map((role: any) => role.name || 'user')
+    : ['user'];
+  const userResponse = {
+    id: user.id || '',
+    name: user.name || '',
+    email: user.email || '',
+    roles,
+  };
+  res.json(userResponse);
   } catch (error: any) {
     console.error('Error fetching user:', error);
     return res.status(500).json({ error: error.message || 'Server error' });

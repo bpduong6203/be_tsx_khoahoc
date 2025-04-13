@@ -84,3 +84,12 @@ export interface Payment {
     created_at: Date;
     updated_at: Date;
 }
+
+export interface SocialAccount {
+    id: string;
+    user_id: string;
+    provider_name: string;
+    provider_id: string;
+    created_at: Date | null;
+    updated_at: Date | null;
+  }
