@@ -10,7 +10,6 @@ import userRoutes from './routers/user';
 import paymentRoutes from './routers/payment';
 import cdnRouter from './cdn/cdn.router';
 import materialRoutes from './routers/materials';
-import progressRoutes from './routers/progress';
 
 dotenv.config();
 
@@ -45,8 +44,6 @@ app.use('/api', paymentRoutes);
 app.use('/cdn', cdnRouter);
 
 app.use('/api', materialRoutes);
-
-app.use('/api', progressRoutes);
 
 
 app.listen(PORT, () => {

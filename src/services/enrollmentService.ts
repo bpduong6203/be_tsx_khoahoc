@@ -4,10 +4,16 @@ import {
   getEnrollmentById,
   getCourseForEnrollment,
   checkExistingEnrollment,
+  getEnrollmentsByUserId,
+  cancelEnrollmentById,
 } from '../models/enrollment';
 import { getUserById } from '../models/user'; 
 import transporter from '../config/mailer'; 
 import { Enrollment, User } from '../types';
+
+export async function getEnrollmentsByUser(userId: string): Promise<Enrollment[]> {
+  return getEnrollmentsByUserId(userId);
+}
 
 export async function enrollCourseService(
   course_id: string,
@@ -92,7 +98,7 @@ export async function formatEnrollmentForResponse(enrollment: Enrollment): Promi
     user_id: enrollment.user_id,
     course_id: enrollment.course_id,
     expiry_date: enrollment.expiry_date
-      ? enrollment.expiry_date.toISOString().replace('T', 'T').replace('Z', '.000000Z')
+      ? enrollment.expiry_date.toISOString().replace('Z', '.000000Z')
       : null,
     payment_status: enrollment.payment_status,
     payment_method: enrollment.payment_method,
@@ -100,10 +106,10 @@ export async function formatEnrollmentForResponse(enrollment: Enrollment): Promi
     price: enrollment.price.toFixed(2),
     status: enrollment.status,
     completion_date: enrollment.completion_date
-      ? enrollment.completion_date.toISOString().replace('T', 'T').replace('Z', '.000000Z')
+      ? enrollment.completion_date.toISOString().replace('Z', '.000000Z')
       : null,
-    created_at: enrollment.created_at.toISOString().replace('T', 'T').replace('Z', '.000000Z'),
-    updated_at: enrollment.updated_at.toISOString().replace('T', 'T').replace('Z', '.000000Z'),
+    created_at: enrollment.created_at.toISOString().replace('Z', '.000000Z'),
+    updated_at: enrollment.updated_at.toISOString().replace('Z', '.000000Z'),
     course: course
       ? {
           id: course.id,
@@ -121,12 +127,26 @@ export async function formatEnrollmentForResponse(enrollment: Enrollment): Promi
           status: course.status,
           rating: course.rating.toFixed(2),
           enrollment_count: course.enrollment_count,
-          created_at: course.created_at.toISOString().replace('T', 'T').replace('Z', '.000000Z'),
-          updated_at: course.updated_at.toISOString().replace('T', 'T').replace('Z', '.000000Z'),
+          created_at: course.created_at.toISOString().replace('Z', '.000000Z'),
+          updated_at: course.updated_at.toISOString().replace('Z', '.000000Z'),
+          teacher: course.teacher
+            ? {
+                id: course.teacher.id,
+                name: course.teacher.name,
+                email: course.teacher.email,
+                email_verified_at: course.teacher.email_verified_at
+                  ? course.teacher.email_verified_at.toISOString().replace('Z', '.000000Z')
+                  : null,
+                avatar: course.teacher.avatar,
+                created_at: course.teacher.created_at.toISOString().replace('Z', '.000000Z'),
+                updated_at: course.teacher.updated_at.toISOString().replace('Z', '.000000Z'),
+              }
+            : null,
         }
       : null,
   };
 }
+
 async function sendEnrollmentEmail(
   enrollment: Enrollment,
   course: { id: string; title: string; price: number; discount_price: number | null },
@@ -210,4 +230,27 @@ async function sendEnrollmentEmail(
   };
 
   await transporter.sendMail(mailOptions);
+}
+
+export async function cancelEnrollment(enrollmentId: string, userId: string): Promise<Enrollment> {
+  const enrollment = await getEnrollmentById(enrollmentId);
+  if (!enrollment) {
+    const error = new Error('Không tìm thấy thông tin đăng ký');
+    throw error;
+  }
+
+  if (enrollment.user_id !== userId) {
+    const error = new Error('Bạn không có quyền hủy đăng ký này');
+    (error as any).cause = 403;
+    throw error;
+  }
+
+  if (enrollment.status === 'Cancelled') {
+    const error = new Error('Đăng ký đã được hủy trước đó');
+    (error as any).cause = 400;
+    throw error;
+  }
+
+  const updatedEnrollment = await cancelEnrollmentById(enrollmentId);
+  return updatedEnrollment;
 }

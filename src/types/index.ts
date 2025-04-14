@@ -72,7 +72,7 @@ export interface Enrollment {
     payment_method: 'Momo' | 'Bank' | 'Paypal' | 'Cash' | null;
     transaction_id: string | null;
     price: number;
-    status: 'Pending' | 'Active' | 'Expired';
+    status: 'Pending' | 'Active' | 'Expired' | 'Cancelled';
     completion_date: Date | null;
     created_at: Date;
     updated_at: Date;
