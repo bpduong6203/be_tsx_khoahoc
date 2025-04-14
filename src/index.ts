@@ -9,6 +9,7 @@ import lessonRoutes from './routers/lessons';
 import userRoutes from './routers/user';
 import paymentRoutes from './routers/payment';
 import cdnRouter from './cdn/cdn.router';
+import materialRoutes from './routers/materials';
 
 dotenv.config();
 
@@ -41,6 +42,9 @@ app.use('/api', userRoutes);
 app.use('/api', paymentRoutes);
 
 app.use('/cdn', cdnRouter);
+
+app.use('/api', materialRoutes);
+
 
 
 app.listen(PORT, () => {

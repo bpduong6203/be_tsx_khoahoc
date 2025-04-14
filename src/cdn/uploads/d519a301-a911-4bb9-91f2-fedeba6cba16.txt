@@ -1,0 +1,89 @@
+
+
+# Phân công và lịch trình dự án SoundWave
+
+## Tuần 1 (24/02 - 02/03/2025): Thiết kế và cơ sở hạ tầng
+
+**Epic: Phát triển Giao diện Người dùng**
+- **Huy (Team Lead)**: Phụ trách tổng thể, lập kế hoạch và thiết kế cơ sở dữ liệu
+- **Nam**: Story "Trang chủ" (`home.php`) - Thiết kế hero section và mockup trang chủ
+- **Tuyền**: Story "Trang chủ" (`home.php`) - Xây dựng các thành phần UI responsive
+
+**Epic: Quản lý Người dùng**
+- **Cường**: Story "Đăng ký" (`register.php`) - Thiết lập cấu trúc backend và form đăng ký
+- **Hào**: Story "Đăng nhập" (`login.php`) - Phát triển form đăng nhập và logic xác thực
+- **Thanh**: Kiểm thử và đảm bảo chất lượng, setup quy trình kiểm thử
+
+## Tuần 2 (03/03 - 09/03/2025): Phát triển giao diện người dùng
+
+**Epic: Phát triển Giao diện Người dùng**
+- **Nam**: Story "Trang danh sách nhạc" (`music.php`) - Thiết kế giao diện grid và thẻ bài hát
+- **Tuyền**: Story "Trang nghệ sĩ" (`artist.php`, `artist-detail.php`) - Phát triển trang danh sách và chi tiết nghệ sĩ
+
+**Epic: Quản lý Người dùng**
+- **Huy**: Story "Trang hồ sơ người dùng" (`profile.php`) - Phát triển giao diện hồ sơ
+- **Cường**: Hoàn thiện backend cho đăng ký, đăng nhập
+- **Hào**: Phát triển quản lý phiên đăng nhập (`logout.php`) và phân quyền
+- **Thanh**: Kiểm thử giao diện người dùng và các chức năng xác thực
+
+## Tuần 3 (10/03 - 16/03/2025): Chức năng Phát Nhạc
+
+**Epic: Chức năng Phát Nhạc**
+- **Nam**: Story "Trình phát nhạc" (`music-playing.php`) - Phát triển giao diện trình phát
+- **Cường**: Story "Trình phát nhạc" (`music-playing.php`) - Triển khai chức năng phát/tạm dừng
+- **Hào**: Story "Xem chi tiết và phát nhạc" (`music-playing.php`) - Hiển thị thông tin chi tiết bài hát
+- **Tuyền**: Story "Xem chi tiết và phát nhạc" (`music-playing.php`) - Hiển thị lời bài hát
+- **Thanh**: Kiểm thử chức năng phát nhạc
+- **Huy**: Story "Tải xuống nhạc" (`download.php`) - Phát triển backend cho tải xuống
+
+## Tuần 4 (17/03 - 23/03/2025): Tính năng Tương tác
+
+**Epic: Tính năng Tương tác**
+- **Nam**: Story "Yêu thích bài hát" (`favorites.php`) - Phát triển nút yêu thích và trang hiển thị
+- **Huy**: Story "Yêu thích bài hát" (`favorites.php`) - Xây dựng backend lưu trữ danh sách
+- **Cường**: Story "Bình luận" (phần trong `music-playing.php`) - Phát triển form và backend bình luận
+- **Tuyền**: Story "Bình luận" (phần trong `music-playing.php`) - Hiển thị danh sách bình luận
+- **Hào**: Story "Chia sẻ" (phần trong `music-playing.php`) - Phát triển chức năng chia sẻ bài hát
+- **Thanh**: Kiểm thử các tính năng tương tác
+
+## Tuần 5 (24/03 - 30/03/2025): Tìm kiếm và Khám phá
+
+**Epic: Tìm kiếm và Khám phá**
+- **Nam**: Story "Tìm kiếm" (`search.php`, `music.php`) - Phát triển form tìm kiếm và trang kết quả
+- **Cường**: Story "Tìm kiếm" (`search.php`) - Tối ưu thuật toán tìm kiếm
+- **Hào**: Story "Gợi ý bài hát" (phần trong `music-playing.php`) - Phát triển thuật toán gợi ý
+- **Tuyền**: Story "Gợi ý bài hát" (phần trong `home.php`, `category.php`) - Hiển thị bài hát liên quan và phổ biến
+- **Huy**: Giám sát và hỗ trợ tối ưu hóa hiệu suất
+- **Thanh**: Kiểm thử và đảm bảo chất lượng
+
+## Tuần 6 (31/03 - 05/04/2025): Quản trị và Hoàn thiện
+
+**Epic: Quản trị Hệ thống**
+- **Huy**: Story "Quản lý bài hát" (`admin/songs.php`) và "Quản lý nghệ sĩ" (`admin/artists.php`) - Phát triển trang quản lý
+- **Cường**: Story "Quản lý danh mục" (`admin/categories.php`) - Phát triển backend quản lý danh mục
+- **Nam**: Story "Quản lý người dùng" (`admin/users.php`) - Phát triển giao diện quản lý người dùng
+- **Hào**: Hoàn thiện chức năng phát nhạc (`music-playing.php`) và tối ưu hóa
+- **Tuyền**: Hoàn thiện giao diện (`about.php`, `contact.php`) và sửa lỗi UI/UX 
+- **Thanh**: Kiểm thử toàn diện, xử lý trang lỗi (`404.php`) và báo cáo cuối cùng
+
+## Thứ tự triển khai các chức năng theo priority:
+
+### Ưu tiên cao (Tuần 1-3)
+1. Đăng ký/đăng nhập (`register.php`, `login.php`) - Epic: Quản lý Người dùng
+2. Trang chủ và điều hướng (`home.php`) - Epic: Phát triển Giao diện Người dùng
+3. Danh sách nhạc (`music.php`) - Epic: Phát triển Giao diện Người dùng
+4. Trình phát nhạc cơ bản (`music-playing.php`) - Epic: Chức năng Phát Nhạc
+
+### Ưu tiên trung bình (Tuần 3-5)
+5. Trang nghệ sĩ và chi tiết (`artist.php`, `artist-detail.php`) - Epic: Phát triển Giao diện Người dùng
+6. Trang chi tiết bài hát (phần trong `music-playing.php`) - Epic: Chức năng Phát Nhạc
+7. Tính năng yêu thích (`favorites.php`) - Epic: Tính năng Tương tác
+8. Tìm kiếm cơ bản (`search.php`) - Epic: Tìm kiếm và Khám phá
+
+### Ưu tiên thấp (Tuần 5-6)
+9. Bình luận và đánh giá (phần trong `music-playing.php`) - Epic: Tính năng Tương tác
+10. Gợi ý bài hát (phần trong `music-playing.php`, `category.php`) - Epic: Tìm kiếm và Khám phá
+11. Chia sẻ bài hát (phần trong `music-playing.php`) - Epic: Tính năng Tương tác
+12. Bảng quản trị (`admin/dashboard.php`, `admin/songs.php`, `admin/artists.php`, `admin/categories.php`, `admin/users.php`) - Epic: Quản trị Hệ thống
+
+Kế hoạch này đảm bảo những tính năng cốt lõi được phát triển trước, sau đó đến các tính năng nâng cao và cuối cùng là hoàn thiện hệ thống quản trị để quản lý nội dung, phù hợp với cấu trúc file mà bạn đã chọn trong dự án.
