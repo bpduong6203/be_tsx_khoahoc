@@ -1,45 +1,41 @@
-// src/services/materialService.ts
 import { v4 as uuidv4 } from 'uuid';
 import * as materialModel from '../models/material';
-import { getLessonById } from '../models/lesson'; // Import model lesson để kiểm tra lesson tồn tại
+import { getLessonById } from '../models/lesson';
 import { Material } from '../types';
-import { saveImage, getImageUrl, ensureUploadDir } from '../cdn/cdn.service'; // Sử dụng saveImage tạm thời, nên tạo saveFile chung
+import { saveImage, getImageUrl, ensureUploadDir } from '../cdn/cdn.service'; 
 import { promises as fs } from 'fs';
 import path from 'path';
 
-const UPLOAD_DIR = path.join(__dirname, '..', 'cdn', 'uploads'); // Điều chỉnh đường dẫn nếu cần
+const UPLOAD_DIR = path.join(__dirname, '..', 'cdn', 'uploads'); 
 
-// Hàm helper để xóa file (cần thêm vào cdn.service hoặc để ở đây)
+
 async function deleteFileFromCdn(fileName: string): Promise<void> {
     try {
         const filePath = path.join(UPLOAD_DIR, fileName);
         await fs.unlink(filePath);
         console.log(`Successfully deleted file: ${fileName}`);
     } catch (error: any) {
-        // Nếu file không tồn tại thì không cần báo lỗi nghiêm trọng
         if (error.code !== 'ENOENT') {
             console.error(`Error deleting file ${fileName} from CDN:`, error);
-            // Có thể throw lỗi ở đây nếu việc xóa file thất bại là nghiêm trọng
         } else {
             console.warn(`File not found for deletion, possibly already deleted: ${fileName}`);
         }
     }
 }
 
-// Hàm helper để lấy tên file từ URL (giả định URL có dạng /cdn/images/filename.ext)
+
 function getFileNameFromUrl(fileUrl: string): string | null {
     if (!fileUrl) return null;
     const parts = fileUrl.split('/');
-    return parts.pop() || null; // Lấy phần cuối cùng
+    return parts.pop() || null; 
 }
 
 
 export async function getMaterialsByLessonIdService(lessonId: string): Promise<Material[]> {
-    // Kiểm tra lesson tồn tại
     const lesson = await getLessonById(lessonId);
     if (!lesson) {
         const error = new Error('Lesson not found.');
-        (error as any).status = 404; // Thêm status code cho lỗi
+        (error as any).status = 404; 
         throw error;
     }
     return materialModel.getMaterialsByLessonId(lessonId);
@@ -59,9 +55,8 @@ export async function createMaterialService(data: {
     lesson_id: string;
     title: string;
     description?: string;
-    file?: Express.Multer.File; // Nhận file từ multer
+    file?: Express.Multer.File; 
 }): Promise<Material> {
-    // Kiểm tra lesson tồn tại
     const lesson = await getLessonById(data.lesson_id);
     if (!lesson) {
         throw new Error('Lesson not found.');
@@ -72,13 +67,12 @@ export async function createMaterialService(data: {
     let file_size: number | null = null;
 
     if (data.file) {
-        // Sử dụng hàm saveImage từ cdn.service (nên tạo hàm saveFile chung hơn)
-        const fileName = await saveImage(data.file); // saveImage trả về tên file
-        file_url = getImageUrl(fileName); // getImageUrl trả về URL dạng /cdn/images/filename
+        const fileName = await saveImage(data.file); 
+        file_url = getImageUrl(fileName); 
         file_type = data.file.mimetype;
-        file_size = Math.round(data.file.size / 1024); // KB
+        file_size = Math.round(data.file.size / 1024); 
     } else {
-        // Xử lý trường hợp không có file (nếu logic cho phép)
+    
         throw new Error('File is required for material.');
     }
 
@@ -110,7 +104,6 @@ export async function updateMaterialService(
         throw new Error('Material not found.');
     }
 
-     // Nếu có lesson_id mới, kiểm tra nó tồn tại
      if (data.lesson_id && data.lesson_id !== existingMaterial.lesson_id) {
         const lesson = await getLessonById(data.lesson_id);
         if (!lesson) {
@@ -122,20 +115,17 @@ export async function updateMaterialService(
     let newFileName: string | null = null;
 
     if (data.file) {
-        // 1. Xóa file cũ nếu có
         const oldFileName = getFileNameFromUrl(existingMaterial.file_url);
         if (oldFileName) {
             await deleteFileFromCdn(oldFileName);
         }
-
-        // 2. Lưu file mới
-        const savedFileName = await saveImage(data.file); // saveImage trả về tên file
-        updates.file_url = getImageUrl(savedFileName); // getImageUrl trả về URL
+        const savedFileName = await saveImage(data.file); 
+        updates.file_url = getImageUrl(savedFileName); 
         updates.file_type = data.file.mimetype;
-        updates.file_size = Math.round(data.file.size / 1024); // KB
+        updates.file_size = Math.round(data.file.size / 1024); 
     }
 
-    // Cập nhật các trường khác nếu có trong data
+  
     if (data.title !== undefined) {
         updates.title = data.title;
     }
@@ -147,12 +137,11 @@ export async function updateMaterialService(
     }
 
 
-    // Chỉ gọi update nếu có thay đổi
+
     if (Object.keys(updates).length > 0) {
         return materialModel.updateMaterial(id, { ...updates, updated_at: new Date() });
     }
 
-    // Nếu không có gì thay đổi, trả về material hiện tại
     return existingMaterial;
 }
 
@@ -162,7 +151,7 @@ export async function deleteMaterialService(id: string): Promise<boolean> {
         throw new Error('Material not found.');
     }
 
-    // Xóa file từ CDN trước khi xóa record DB
+
     const fileName = getFileNameFromUrl(material.file_url);
     if (fileName) {
          await deleteFileFromCdn(fileName);
@@ -172,7 +161,7 @@ export async function deleteMaterialService(id: string): Promise<boolean> {
     return materialModel.deleteMaterial(id);
 }
 
-// Hàm định dạng (tương tự DTO trong PHP)
+
 export function formatMaterialForResponse(material: Material): any {
     return {
         id: material.id,
