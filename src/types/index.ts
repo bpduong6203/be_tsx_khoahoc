@@ -17,8 +17,14 @@ export interface Role {
 export interface Category {
     id: string;
     name: string;
+    description: string | null; 
+    parent_id: string | null;   
     status: 'Active' | 'Inactive';
-    courses?: Course[];
+    
+    courses?: Course[]; 
+    created_at?: Date; 
+    updated_at?: Date; 
+    created_by?: string | null; 
 }
 
 export interface Lesson {
@@ -83,6 +89,29 @@ export interface Payment {
     billing_info: string | null;
     created_at: Date;
     updated_at: Date;
+}
+
+export interface Material {
+    id: string;
+    lesson_id: string;
+    title: string;
+    file_url: string;
+    file_type: string | null;
+    file_size: number | null; // Lưu trữ bằng KB như trong code PHP service
+    description: string | null;
+    created_at: Date | null;
+    updated_at: Date | null;
+    // Optional: Add lesson relation if needed for responses
+    // lesson?: Lesson;
+}
+
+export interface SocialAccount { // Giữ lại interface này nếu nó đã tồn tại
+    id: string;
+    user_id: string;
+    provider_name: string;
+    provider_id: string;
+    created_at: Date | null;
+    updated_at: Date | null;
 }
 
 export interface SocialAccount {
