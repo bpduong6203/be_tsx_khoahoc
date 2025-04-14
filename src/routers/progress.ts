@@ -1,13 +1,13 @@
 // src/routers/progress.ts
 import express, { Request, Response } from 'express';
 import { body, param, validationResult } from 'express-validator';
-import { isAuthenticated, AuthenticatedRequest } from '../middleware/auth'; // Chỉ cần isAuthenticated
+import { isAuthenticated, AuthenticatedRequest } from '../middleware/auth'; 
 import * as progressService from '../services/progressService';
-import { ProgressStatus } from '../types'; // Import enum
+import { ProgressStatus } from '../types'; 
 
 const router = express.Router();
 
-// GET: Lấy tóm tắt tiến độ tất cả khóa học của user đang đăng nhập
+
 router.get('/progress/courses', isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
     try {
         const userId = req.user?.id;
@@ -25,7 +25,7 @@ router.get('/progress/courses', isAuthenticated, async (req: AuthenticatedReques
     }
 });
 
-// GET: Lấy chi tiết tiến độ của một enrollment cụ thể
+
 router.get('/progress/enrollments/:enrollmentId', isAuthenticated, [
     param('enrollmentId').isUUID().withMessage('Invalid Enrollment ID')
 ], async (req: AuthenticatedRequest, res: Response) => {
