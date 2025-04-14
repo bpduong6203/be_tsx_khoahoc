@@ -76,6 +76,7 @@ export interface Enrollment {
     completion_date: Date | null;
     created_at: Date;
     updated_at: Date;
+    course?: Course;
 }
 export interface Payment {
     id: string;
@@ -97,22 +98,12 @@ export interface Material {
     title: string;
     file_url: string;
     file_type: string | null;
-    file_size: number | null; // Lưu trữ bằng KB như trong code PHP service
+    file_size: number | null; 
     description: string | null;
     created_at: Date | null;
     updated_at: Date | null;
-    // Optional: Add lesson relation if needed for responses
-    // lesson?: Lesson;
 }
 
-export interface SocialAccount { // Giữ lại interface này nếu nó đã tồn tại
-    id: string;
-    user_id: string;
-    provider_name: string;
-    provider_id: string;
-    created_at: Date | null;
-    updated_at: Date | null;
-}
 
 export interface SocialAccount {
     id: string;
@@ -122,3 +113,60 @@ export interface SocialAccount {
     created_at: Date | null;
     updated_at: Date | null;
   }
+
+  export enum ProgressStatus {
+    NotStarted = 'Not Started',
+    InProgress = 'In Progress',
+    Completed = 'Completed',
+}
+
+export interface Progress {
+    id: string;
+    enrollment_id: string;
+    lesson_id: string;
+    status: ProgressStatus;
+    start_date: Date | null;
+    completion_date: Date | null;
+    last_access_date: Date | null;
+    time_spent: number | null; 
+    created_at: Date | null;
+    updated_at: Date | null;
+   
+}
+
+// Interface cho dữ liệu chi tiết của một enrollment
+export interface EnrollmentProgressDetail {
+    enrollment_id: string;
+    course_id: string;
+    course_title?: string; 
+    total_lessons: number;
+    completed_lessons: number;
+    in_progress_lessons: number;
+    completion_percentage: number;
+    lessons: LessonProgressInfo[];
+}
+
+// Interface cho thông tin tiến độ của từng bài học trong chi tiết enrollment
+export interface LessonProgressInfo {
+    lesson_id: string;
+    title: string;
+    order_number: number;
+    duration: number | null; 
+    status: ProgressStatus;
+    start_date: Date | null;
+    completion_date: Date | null;
+    last_access_date: Date | null;
+    time_spent: number | null;
+}
+
+// Interface cho dữ liệu tóm tắt tiến độ các khóa học của user
+export interface UserCourseProgressSummary {
+    enrollment_id: string;
+    course_id: string;
+    course_title: string;
+    course_thumbnail?: string | null; 
+    total_lessons: number;
+    completed_lessons: number;
+    completion_percentage: number;
+    last_accessed: Date | null;
+}

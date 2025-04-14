@@ -107,3 +107,19 @@ export async function updateLesson(
 export async function deleteLesson(id: string): Promise<void> {
   await pool.query('DELETE FROM lessons WHERE id = ?', [id]);
 }
+
+export async function countLessonsByCourseId(courseId: string): Promise<number> {
+  const [rows] = await pool.query(
+    'SELECT COUNT(*) as count FROM lessons WHERE course_id = ? AND status = ?',
+    [courseId, 'Published'] // Chỉ đếm bài học đã publish
+  );
+  return (rows as any[])[0]?.count || 0;
+}
+
+export async function verifyLessonInCourse(lessonId: string, courseId: string): Promise<boolean> {
+    const [rows] = await pool.query(
+        'SELECT id FROM lessons WHERE id = ? AND course_id = ?',
+        [lessonId, courseId]
+    );
+    return (rows as any[]).length > 0;
+}
